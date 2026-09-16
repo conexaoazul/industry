@@ -1,0 +1,4 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_digimano_patient_user,digimano.patient user,model_digimano_patient,base.group_user,1,1,1,0
+access_digimano_shift_user,digimano.shift user,model_digimano_shift,base.group_user,1,1,1,0
+access_digimano_care_entry_user,digimano.care.entry user,model_digimano_care_entry,base.group_user,1,1,1,0

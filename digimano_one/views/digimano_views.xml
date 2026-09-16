@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_digimano_patient_list" model="ir.ui.view">
+        <field name="name">digimano.patient.list</field>
+        <field name="model">digimano.patient</field>
+        <field name="arch" type="xml">
+            <list string="Pacientes">
+                <field name="name"/>
+                <field name="age"/>
+                <field name="active"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_digimano_patient_form" model="ir.ui.view">
+        <field name="name">digimano.patient.form</field>
+        <field name="model">digimano.patient</field>
+        <field name="arch" type="xml">
+            <form string="Paciente">
+                <sheet>
+                    <group>
+                        <field name="name"/>
+                        <field name="age"/>
+                        <field name="active"/>
+                    </group>
+                    <notebook>
+                        <page string="Turnos">
+                            <field name="shift_ids" readonly="1">
+                                <list>
+                                    <field name="start_at"/>
+                                    <field name="responsible_user_id"/>
+                                    <field name="responsible_role"/>
+                                    <field name="state"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_digimano_shift_list" model="ir.ui.view">
+        <field name="name">digimano.shift.list</field>
+        <field name="model">digimano.shift</field>
+        <field name="arch" type="xml">
+            <list string="Turnos" decoration-warning="state == 'handoff'" decoration-success="state == 'active'">
+                <field name="patient_id"/>
+                <field name="responsible_user_id"/>
+                <field name="responsible_role"/>
+                <field name="start_at"/>
+                <field name="incoming_user_id"/>
+                <field name="state"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_digimano_shift_form" model="ir.ui.view">
+        <field name="name">digimano.shift.form</field>
+        <field name="model">digimano.shift</field>
+        <field name="arch" type="xml">
+            <form string="Turno de cuidado">
+                <header>
+                    <button name="action_start" type="object" string="Assumir cuidado" class="btn-primary" invisible="state != 'draft'"/>
+                    <button name="action_prepare_handoff" type="object" string="Entregar turno" class="btn-primary" invisible="state != 'active'"/>
+                    <button name="action_accept_handoff" type="object" string="Receber e continuar" class="btn-primary" invisible="state != 'handoff'"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,active,handoff,closed"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="patient_id" readonly="state != 'draft'"/>
+                            <field name="responsible_user_id" readonly="state != 'draft'"/>
+                            <field name="responsible_role" readonly="state != 'draft'"/>
+                            <field name="initial_status" readonly="state not in ('draft', 'active')"/>
+                            <field name="initial_note" readonly="state not in ('draft', 'active')"/>
+                        </group>
+                        <group>
+                            <field name="start_at" readonly="1"/>
+                            <field name="incoming_user_id" readonly="state not in ('active', 'handoff')"/>
+                            <field name="handoff_at" readonly="1"/>
+                            <field name="accepted_at" readonly="1"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Registros rápidos">
+                            <field name="entry_ids" context="{'default_shift_id': id}" readonly="state != 'active'">
+                                <list editable="bottom">
+                                    <field name="occurred_at"/>
+                                    <field name="event_type"/>
+                                    <field name="value_label"/>
+                                    <field name="note"/>
+                                    <field name="author_id" readonly="1"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Resumo da entrega">
+                            <field name="handoff_summary" readonly="1" nolabel="1"/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_digimano_patient" model="ir.actions.act_window">
+        <field name="name">Pacientes</field>
+        <field name="res_model">digimano.patient</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <record id="action_digimano_shift" model="ir.actions.act_window">
+        <field name="name">Turnos de cuidado</field>
+        <field name="res_model">digimano.shift</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <menuitem id="menu_digimano_root" name="DIGIMANO ONE" sequence="10"/>
+    <menuitem id="menu_digimano_shifts" name="Cuidado" parent="menu_digimano_root" action="action_digimano_shift" sequence="10"/>
+    <menuitem id="menu_digimano_patients" name="Pacientes" parent="menu_digimano_root" action="action_digimano_patient" sequence="20"/>
+</odoo>
