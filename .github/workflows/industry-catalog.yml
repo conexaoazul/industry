@@ -1,0 +1,49 @@
+name: Industry catalog
+
+on:
+  pull_request:
+    branches: ["19.0"]
+  push:
+    branches: ["19.0"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  catalog:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Test catalog generator
+        run: python3 -m unittest tests/test_industry_catalog_tool.py
+
+      - name: Generate catalog
+        run: python3 tools/industry_catalog.py
+
+      - name: Validate generated catalog
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+
+          path = Path("catalog/industries.json")
+          payload = json.loads(path.read_text(encoding="utf-8"))
+          assert payload["schema_version"] == 1
+          assert payload["source_repo"] == "conexaoazul/industry"
+          assert payload["count"] == len(payload["industries"])
+          assert payload["count"] > 0
+          slugs = [item["slug"] for item in payload["industries"]]
+          assert len(slugs) == len(set(slugs))
+          assert all(item["application"] for item in payload["industries"])
+          print("catalog entries:", payload["count"])
+          PY
+
+      - name: Upload catalog artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: industry-catalog
+          path: catalog/industries.json
+          if-no-files-found: error
